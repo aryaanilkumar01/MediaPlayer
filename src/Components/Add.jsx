@@ -1,11 +1,54 @@
 import React,{useState} from 'react'
 import { Button, Modal, Form, FloatingLabel } from 'react-bootstrap';
+import {uploadNewVideoAPI} from '../services/allAPI'
 
-function Add() {
+function Add({setUploadVideoResponse}) {
+  const [uploadVideo,setUploadVideo] = useState({
+   
+    id:"",caption:"",url:"",link:""
+  })
   const [show, setShow] = useState(false);
+  console.log(uploadVideo);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+  //https://youtu.be/8VEqzGViPrc
+  // https://www.youtube.com/watch?v=8VEqzGViPrc
+  //  
+
+  const getYoutubeEmbedLink = (e)=>{
+    const {value} = e.target
+    if(value.includes("v=")){
+      let vID = value.split("v=")[1].slice(0,11)
+      console.log(`https://www.youtube.com/embed/${vID}`);
+      setUploadVideo({...uploadVideo,link:`https://www.youtube.com/embed/${vID}`})
+    }else{
+      setUploadVideo({...uploadVideo,link:""})
+
+    }
+  }
+  const handleUpload = async ()=>{
+    const {id,caption,url,link} = uploadVideo
+    if(!id || !caption || !url || !link){
+      alert("Uploading form is incomplete. Please fill the form completely!!!")
+    }else{
+      // store uploadvideo in json server
+      const result = await uploadNewVideoAPI(uploadVideo)
+      console.log(result);
+      if(result.status>=200 && result.status<300){
+        // success
+        handleClose()
+        // reset uploadVideo
+        setUploadVideo({
+          id:"",caption:"",url:"",link:""
+        })
+        // share result.data to view component
+        setUploadVideoResponse(result.data)
+      }else{
+        alert(result.message)
+      }
+    }
+  }
 
   return (
     <>
@@ -31,7 +74,8 @@ function Add() {
         label="Uploading video Id"
         className="mb-3"
       >
-        <Form.Control type="text" placeholder="Uploading video Id" />
+        <Form.Control type="text" placeholder="Uploading video Id" 
+        onChange={e=>setUploadVideo({...uploadVideo,id:e.target.value})} />
       </FloatingLabel>
 
       <FloatingLabel
@@ -40,7 +84,8 @@ function Add() {
         className="mb-3"
       >
 
-<Form.Control type="text" placeholder="Uploading video Caption" />
+<Form.Control type="text" placeholder="Uploading video Caption"
+ onChange={e=>setUploadVideo({...uploadVideo,caption:e.target.value})} />
       </FloatingLabel>
 
       <FloatingLabel
@@ -49,7 +94,8 @@ function Add() {
         className="mb-3"
       >
 
-<Form.Control type="text" placeholder="Uploading video Image URL" />
+<Form.Control type="text" placeholder="Uploading video Image URL"
+ onChange={e=>setUploadVideo({...uploadVideo,url:e.target.value})} />
       </FloatingLabel>
 
       <FloatingLabel
@@ -58,7 +104,8 @@ function Add() {
         className="mb-3"
       >
 
-<Form.Control type="text" placeholder="Uploading video Youtube Link" />
+<Form.Control type="text" placeholder="Uploading video Youtube Link"
+ onChange={getYoutubeEmbedLink} />
       </FloatingLabel>
 
       
@@ -70,7 +117,7 @@ function Add() {
           <Button variant="secondary" onClick={handleClose}>
             Cancel
           </Button>
-          <Button variant="primary">Upload</Button>
+          <Button onClick={handleUpload} className='btn btn-info' >Upload</Button>
         </Modal.Footer>
       </Modal>
 
